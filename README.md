@@ -6,6 +6,7 @@ A MATLAB toolbox for unsupervised repersentation learning and deep learning
 - ClassRBM: RBM for classification
 - Auto-Encoder + sparsity
 - Non-Negative Matrix Factorization + sparsity
+- Non-Negative RBM, AE
 - Deep Belief Networks
 - Deep Boltzmann Machines
 - Neural Networks
