@@ -2,6 +2,7 @@ function exp_sparse_ae_mnist()
 % Sparsity experiment on RBM
 eval(strcat(mfilename,'_setting'));
 
+<<<<<<< HEAD
 fprintf('Number of experiments to be run is %d. Press a key to continue\n',...
     size(lrs,2)*size(mms,2)*size(csts,2)*size(lds,2)*size(ps,2));
 
@@ -11,6 +12,8 @@ for mm = mms
 for cst = csts
 for ld  = lds
 for p = ps
+=======
+>>>>>>> d542ebfa7affe2314f6f6f3ed5ac842089815a3b
 conf.hidNum    = 1000;  % Number of hidden units
 conf.eNum      = 100;   % Number of epoch
 conf.bNum      = 0;    % Batch number, 0 means it will be decided by the number of training samples
@@ -47,8 +50,5 @@ MN = min(min(imgs));
 MX = max(max(imgs));
 imgs = (imgs-MN)/(MX-MN);
 save_images(imgs,100,28,28,iname);
-end
-end
-end
-end
+
 end
