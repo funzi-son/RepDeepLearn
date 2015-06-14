@@ -5,9 +5,9 @@ function [model,vld_acc,tst_acc] = class_rbm_train(conf)
 trn_dat = get_data_from_file(conf.trn_dat_file);
 trn_lab = get_data_from_file(conf.trn_lab_file);
 
+
 if isfield(conf,'row_dat') && conf.row_dat % sample in row
-    trn_dat = trn_dat';
-    trn_lab = trn_lab';
+    trn_dat = trn_dat';    
 end
 if isfield(conf,'gpu') && conf.gpu
     gpu = 1;
@@ -21,8 +21,7 @@ if isfield(conf,'vld_dat_file') && ~isempty(conf.vld_dat_file)
     vld_dat = get_data_from_file(conf.vld_dat_file);
     vld_lab = get_data_from_file(conf.vld_lab_file);
     if isfield(conf,'row_dat') && conf.row_dat % sample in row
-        vld_dat = vld_dat';
-        vld_lab = vld_lab';        
+        vld_dat = vld_dat';                
     end
     if gpu
         vld_dat = gpuArray(vld_dat);
@@ -34,8 +33,7 @@ if isfield(conf,'tst_dat_file') && ~isempty(conf.tst_dat_file)
     tst_dat = get_data_from_file(conf.tst_dat_file);
     tst_lab = get_data_from_file(conf.tst_lab_file);
     if isfield(conf,'row_dat') && conf.row_dat % sample in row
-        tst_dat = tst_dat';
-        tst_lab = tst_lab';
+        tst_dat = tst_dat';        
     end
     if gpu
         tst_dat = gpuArray(tst_dat);
@@ -97,6 +95,7 @@ if isfield(conf,'class_type'), class_type=conf.class_type; end
 
 conf.dis = 1-conf.gen;
 
+
 while running    
     e = e+1;
     inx = randperm(SZ);
@@ -113,7 +112,7 @@ while running
         w_diff = 0; u_diff = 0; v_diff = 0; h_diff = 0; l_diff = 0;
         iiii = inx((b-1)*conf.sNum+1:min(b*conf.sNum,SZ));
         visP = trn_dat(:,iiii);
-        labP = trn_lab(iiii)' + 1;
+        labP = trn_lab(iiii) + 1;
         
         sNum = size(visP,2);                
         hidP = logistic(model.W'*visP + model.U(labP,:)' + repmat(model.hidB,1,sNum));
@@ -136,7 +135,9 @@ while running
             %% updating from log-likelihood        
             w_diff = conf.gen*(visP*hidP' - visNs*hidN')/sNum;        
 
-            s_labP = discrete2softmax(labP,labNum);
+            %size(labP)
+            %size(labN)
+            s_labP = discrete2softmax(labP,labNum);            
             s_labN = discrete2softmax(labN,labNum);
 
             u_diff = conf.gen*(s_labP*hidP' - s_labN*hidN')/sNum;                                

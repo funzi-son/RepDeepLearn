@@ -11,7 +11,7 @@ hidNum = conf.hidNum;
 
 W = abs(randn(visNum,hidNum));
 H = abs(randn(hidNum,sz));
-cost_func = inline('sum(sum((X - WH*).^2))','X','W','H'); % Euclidean cost function -  default
+cost_func = inline('sum(sum((X - W*H).^2))','X','W','H','alpha'); % Euclidean cost function -  default
 
 w_norm = 0;
 h_norm = 0;
@@ -20,7 +20,7 @@ if isfield(conf,'w_norm'), w_norm = conf.w_norm; end
 if isfield(conf,'h_norm'), h_norm = conf.h_norm; end
 epoch = 1;
 err = [];
-proj_sparsity=[0,0];
+proj_sparsity=[0,0]; % sparsity or not [hid,w]
 
 if isfield(conf,'h_proj_l1_norm'), proj_sparsity(1) = (conf.h_proj_l1_norm ~=0); end
 if isfield(conf,'w_proj_l1_norm'), proj_sparsity(2) = (conf.w_proj_l1_norm ~=0); end    
@@ -52,11 +52,11 @@ end
 
 if strcmp(conf.costFnc,'euclidean')    
     w_update = inline('W.*((X*transpose(H))./max((W*H)*transpose(H),1e-20))','X','W','H');
-    h_update = inline('H.*((transpose(W)*X)./max(transpose(W)*(W*H),1e-20))','X','W','H');
+    h_update = inline('H.*((transpose(W)*X)./max(transpose(W)*(W*H),1e-20))','X','W','H','alpha');
 elseif strcmp(conf.costFnc,'i-divergence')    
-    cost_func = inline('sum(sum(X.*log(max(X,1e-20)./max(W*H,1e-20)) - X + W*H))','X','W','H');
+    cost_func = inline('sum(sum(X.*log(max(X,1e-20)./max(W*H,1e-20)) - X + W*H))','X','W','H','alpha');
     w_update = inline('W.*bsxfun(@rdivide,(X./max((W*H),1e-20))*transpose(H),transpose(sum(H,2)))','X','W','H');
-    h_update = inline('H.*bsxfun(@rdivide,transpose(W)*(X./max((W*H),1e-20)),transpose(sum(W)))','X','W','H');
+    h_update = inline('H.*bsxfun(@rdivide,transpose(W)*(X./max((W*H),1e-20)),transpose(sum(W)))','X','W','H','alpha');
 elseif strcmp(conf.costFnc,'reg i-divergence')
     cost_func = inline('sum(sum(X.*log(max(X,1e-20)./max(W*H,1e-20)) - X + W*H)) + alpha*sum(sum(H))','X','W','H','alpha');
     w_update = inline('W.*bsxfun(@rdivide,(X./max((W*H),1e-20))*transpose(H),transpose(sum(H,2)))','X','W','H');
@@ -85,8 +85,8 @@ while factorizing,
             h_step = h_step*1.2;
             H = H_;
             
-        else
-            H = h_update(X,W,H,alpha); 
+        else            
+            H = h_update(X,W,H,alpha);
             
             if h_norm % L2 norm
             % Normalize H such that l2_h = 1;

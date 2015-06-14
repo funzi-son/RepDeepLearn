@@ -32,6 +32,8 @@ switch(TEST)
         %for Yale
         trn_dat_file = 'yale_train_data_6';
         trn_lab_file = 'yale_train_label_6';
+        vld_dat_file = 'yale_train_data_6';
+        vld_lab_file = 'yale_train_label_6';
         tst_dat_file = 'yale_test_data_5';
         tst_lab_file = 'yale_test_label_5';
         conf.row = 32;
@@ -41,6 +43,8 @@ switch(TEST)
         %for MNIST 
         trn_dat_file = 'mnist_train_dat_20k';
         trn_lab_file = 'mnist_train_lab_20k';
+        vld_dat_file = 'mnist_vld_dat_10k';
+        vld_lab_file = 'mnist_vld_lab_10k';
         tst_dat_file = 'mnist_test_dat_10k';
         tst_lab_file = 'mnist_test_lab_10k';
         conf.row = 28;
@@ -50,6 +54,8 @@ switch(TEST)
 end
 conf.trn_dat_file = trn_dat_file;
 conf.trn_lab_file = trn_lab_file;
+conf.vld_dat_file = vld_dat_file;
+conf.vld_lab_file = vld_lab_file;
 tic
 model = class_rbm_train(conf);
 toc
