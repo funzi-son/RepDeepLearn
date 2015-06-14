@@ -6,7 +6,7 @@ fprintf('Number of experiments to be run is %d. Press a key to continue\n',...
     size(lrs,2)*size(mms,2)*size(csts,2)*size(lds,2)*size(ps,2));
 
 pause(3);
-for lr = lrs
+for lr = lrs_
 for mm = mms
 for cst = csts
 for ld  = lds
