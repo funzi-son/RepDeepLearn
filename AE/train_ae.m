@@ -3,21 +3,29 @@ function model = train_ae(conf)
 % Authors: Son T
 
 % Load data
-vars = whos('-file', conf.trn_dat_file);
-A = load(conf.trn_dat_file,vars(1).name);
-trn_dat = A.(vars(1).name);
-clear A;
+trn_dat = get_data_from_file(conf.trn_dat_file,conf.row_dat);
 
-[sz,visNum] = size(trn_dat);
+[visNum,sz] = size(trn_dat);
 hidNum      = conf.hidNum;
-model.W = 1/(visNum)*(2*rand(visNum,hidNum)-1);
-model.visB = zeros(1,visNum);
-model.hidB = zeros(1,hidNum);
+mmm = max(hidNum,visNum);
+model.W = 1/(mmm)*(2*rand(visNum,hidNum)-1);
+model.visB = zeros(visNum,1);
+model.hidB = zeros(hidNum,1);
 
 DW  = zeros(size(model.W));
 DVB = zeros(size(model.visB));
 DHB = zeros(size(model.hidB));
 
+if isfield(conf,'v_unit'), v_unit = conf.v_unit; end
+if isfield(conf,'h_unit'), h_unit = conf.h_unit; end
+units
+
+fprintf('Start training an AE: %d %s x %d %s\n',visNum,v_unit,hidNum,h_unit);
+
+
+
+if conf.sNum ==0, conf.sNum = sz; end
+    
 if conf.bNum == 0
    bNum = sz/conf.sNum;
 else
@@ -33,31 +41,31 @@ for ei=1:conf.eNum
    centropy = 0;
    hspr = 0;
    for b=1:bNum
-     visP = trn_dat(inx((b-1)*conf.sNum +1:min(b*conf.sNum,sz)),:);
-     sNum = size(visP,1);
+     visP = trn_dat(:,inx((b-1)*conf.sNum +1:min(b*conf.sNum,sz)));
+     sNum = size(visP,2);
      % Upward pass
-     hidI = bsxfun(@plus,visP*model.W,model.hidB);
-     hidP = logistic(hidI); 
+     hidI = bsxfun(@plus,model.W'*visP,model.hidB);
+     hidP = vis2hid(hidI); 
      % Reconstruction
-     visNI = bsxfun(@plus,hidP*model.W',model.visB);
-     visN = logistic(visNI);
+     visNI = bsxfun(@plus,model.W*hidP,model.visB);
+     visN = vis2hid(visNI);
      
      vdiff = (visP-visN);         
-     hdiff = (vdiff*model.W).*hidP.*(1-hidP);
-     wdiff = visP'*hdiff + vdiff'*hidP;
+     hdiff = (model.W'*vdiff).*hidP.*(1-hidP);
+     wdiff = visP*hdiff' + vdiff*hidP';
      
     %pause
-      DW = lr*(wdiff/visNum-conf.params(4)*model.W) + conf.params(3)*DW;
+      DW = lr*(wdiff/sNum-conf.params(4)*model.W) + conf.params(3)*DW;
       model.W = model.W + DW;
 
-      DVB = lr*mean(vdiff) + conf.params(3)*DVB;
+      DVB = lr*mean(vdiff,2) + conf.params(3)*DVB;
       model.visB = model.visB +DVB;
 
-      DHB = lr*mean(hdiff)/visNum + conf.params(3)*DHB;
+      DHB = lr*mean(hdiff,2) + conf.params(3)*DHB;
       model.hidB  = model.hidB + DHB;
 
       % Sparsity
-      if isfield(conf,'sparsity')
+      if isfield(conf,'sparsity') && conf.lambda > 0
             if strcmp(conf.sparsity,'EMIN')
                 expectation_min;
             elseif strcmp(conf.sparsity,'KLMIN')                

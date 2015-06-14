@@ -11,3 +11,4 @@ A MATLAB toolbox for unsupervised repersentation learning and deep learning
 - Deep Boltzmann Machines
 - Neural Networks
 
+Run "addpath_deepnets" to start, then run any example are in "examples" directory. 

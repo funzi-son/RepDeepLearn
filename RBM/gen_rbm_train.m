@@ -31,15 +31,14 @@ if isfield(conf,'gpu') && conf.gpu
     hidBD = gpuArray(hidBD);
 end
 %% Define units for each layer
-v_unit = 'binary';
-h_unit = 'binary';
 if isfield(conf,'v_unit'), v_unit = conf.v_unit; end
 if isfield(conf,'h_unit'), h_unit = conf.h_unit; end
-
-fprintf('Start training an RBM: %d %s x %d %s\n',visNum,v_unit,hidNum,h_unit);
 units
+fprintf('Start training an RBM: %d %s x %d %s\n',visNum,v_unit,hidNum,h_unit);
+
 
 %% Batch learning papameter
+if conf.sNum == 0, conf.sNum = SZ; end
 bNum = conf.bNum; if bNum==0, bNum=ceil(SZ/conf.sNum); end
 %% running
 lr = conf.params(1);

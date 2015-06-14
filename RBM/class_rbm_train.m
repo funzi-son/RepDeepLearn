@@ -186,7 +186,7 @@ while running
            model.hidB = model.hidB + lr*h_diff;
         end
         
-        if conf.non_neg>0
+        if isfield(conf,'non-neg') && conf.non_neg>0
             model.W = model.W - conf.non_neg*(model.W<0).*model.W;
         end
         % Get training accuracy

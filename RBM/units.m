@@ -1,5 +1,8 @@
 % In this code we treat the matrix: W as IxJ, D as I or J x sNum
 % Becareful when apply to the old code (need to change the old code)
+if ~exist('v_unit','var'), v_unit = 'binary'; end
+if ~exist('h_unit','var'), h_unit = 'binary'; end
+
 if strcmp(v_unit,'binary')
     hid2vis = inline('logistic(D)','D');
     vis_sample = inline('double(D>rand(size(D)))','D');
