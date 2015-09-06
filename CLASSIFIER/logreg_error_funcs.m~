@@ -1,0 +1,7 @@
+if strcmp(obj_fnc,'mle')
+    error_fnc = @logreg_mle;
+elseif strcmp(obj_fnc,'mse')
+    error_fnc = @logreg_mse;
+elseif strcmp(obj_fnc,'cross_entropy')
+    error_fnc = @logreg_cent;
+end

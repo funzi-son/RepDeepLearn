@@ -1,0 +1,67 @@
+function model = train_logistic_reg(conf)
+
+trn_dat = get_data_from_file(conf.trn_dat_file,conf.row_dat);
+trn_lab = get_data_from_file(conf.trn_lab_file,conf.row_dat);
+vld_dat = get_data_from_file(conf.vld_dat_file,conf.row_dat);
+vld_lab = get_data_from_file(conf.vld_lab_file,conf.row_dat);
+tst_dat = get_data_from_file(conf.tst_dat_file,conf.row_dat);
+tst_lab = get_data_from_file(conf.tst_lab_file,conf.row_dat);
+% Get cost function
+objective_funs
+
+% Initialize params
+model.W     = min([0.001 1/visNum])*(2*rand(visNum,lNum)-1);
+model.labB  = zeros(lNum);
+
+DW = zeros(size(model.W));
+DB = zeros(size(model.labB));
+
+
+STOP = 0;
+while ~STOP
+    inx = ranperm(SZ);
+    trn_acc = 0;
+    for b=1:bNum
+        iii = inx((b-1)*conf.sNum+1:min(b*conf.sNum,SZ));
+        X = trn_dat(:,iii);        
+        L = trn_lab(iii)+1;
+        
+        sNum = size(X,2);
+        probs = get_probs(X,model);                                       
+        
+        % Target label
+        lab = discrete2softmax(L,lNum);
+        
+        err = get_error(probs,lab);
+        
+        diff = X*err'/sNum;
+        % Update
+        DW = lr*(diff-conf.params(4)*model.W) + mm*DW;
+        model.W = model.W + DW;
+        
+        DB =  lr*mean(err,2) + mm*DB;
+        model.labB = model.labB + DB;
+        
+        % Get error
+        trn_acc = trn_acc + (L==max(get_probs(X,model))); 
+        % Get cost 
+        obj_vl = obj_vl + cost_func();
+    end
+    trn_acc = trn_acc/bNum;
+    vld_acc = (vld_lab==max(get_probs(vld_dat,model))-1); 
+    tst_acc = (tst_lab==max(get_probs(tst_dat,model))-1); 
+    
+    % Learning rate decay + early stopping
+    
+    
+    % Print out
+    fprintf('[LOGREG] Cost=%.5f|trn_acc=%.5f|vld_acc=%.5f|tst_acc=%.5f\n',err,trn_acc,vld_acc,tst_acc);
+    
+end
+end
+function probs = get_probs(X,model)
+    I = bsxfun(@plus,model.W'*X,model.labB);
+    I = exp(bsxfun(@minus,I,max(I)));% exponents of normalized input
+    probs = bsxfun(@rdivide,I,sum(I));        
+end
+

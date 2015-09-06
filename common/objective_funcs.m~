@@ -1,0 +1,7 @@
+if strcmp(obj_fnc,'mle')
+    cost_fnc = @llh;    
+elseif strcmp(obj_fnc,'mse')
+    cost_fnc = @mse;
+elseif strcmp(obj_fun,'cross-entropy')
+    cost_fnc = @cent;
+end

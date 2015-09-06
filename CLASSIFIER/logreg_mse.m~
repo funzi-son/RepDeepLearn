@@ -1,0 +1,4 @@
+function err = logreg_mse(outputs,labels)
+   xxx = sum((labels - outputs).*outputs);
+   err= -bsxfun(@times,outputs,1-xxx);
+end
