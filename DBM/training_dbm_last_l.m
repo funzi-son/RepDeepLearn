@@ -1,79 +1,66 @@
-function [W visB hidB] = training_dbm_last_l(conf,trn_dat)
+function model = training_dbm_last_l(conf,trn_dat)
+% Son Tran
+%% Load data
+if nargin<2
+    trn_dat = get_data_from_file(conf.trn_dat_file);
+end
+
+
 %% initialization
-visNum  = size(trn_dat,2);
+visNum  = size(trn_dat,1);
 hidNum  = conf.hidNum;
-sNum  = conf.sNum;
 lr    = conf.params(1);
-N     = conf.N;                                                                     % Number of epoch training with lr_1                     
+N     = conf.N;  % Number of epoch training with lr_1                     
 
-W     = 0.1*randn(visNum,hidNum);
-DW    = zeros(size(W));
-visB  = zeros(1,visNum);
-DVB   = zeros(1,visNum);
-hidB  = zeros(1,hidNum);
-DHB   = zeros(1,hidNum);
+model.W     = min(1/max(visNum,hidNum),0.001)*(2*rand(visNum,hidNum)-1);
+model.visB  = zeros(visNum,1);
+model.hidB  = zeros(hidNum,1);
+
+DW    = zeros(size(model.W));
+DVB   = zeros(visNum,1);
+DHB   = zeros(hidNum,1);
 
 
-%% Reconstruction error & evaluation error & early stopping
-mse    = 0;
-omse   = 0;
-inc_count = 0;
-MAX_INC = conf.MAX_INC;                                                                % If the error increase MAX_INC times continuously, then stop training
-%% Average best settings
-n_best  = 1;
-aW  = size(W);
-aVB = size(visB);
-aHB = size(hidB);
-%% Plotting
-if conf.plot_, h = plot(nan); end
 %% ==================== Start training =========================== %%
-for i=1:conf.eNum
-    if i== N+1
+for e=1:conf.eNum
+    if e== N+1
         lr = conf.params(2);
     end
-    omse = mse;
-    mse = 0;
-    for j=1:conf.bNum
-       visP = trn_dat((j-1)*conf.sNum+1:j*conf.sNum,:);
+    err = 0;
+    
+    inx = randperm(SZ);
+    
+    for b=1:conf.bNum
+       visP = trn_dat(:,inx((b-1)*conf.sNum+1:min(b*conf.sNum,Z)));
+       sNum = size(visP,2);
        %up
-       hidP = logistic(visP*W + repmat(hidB,sNum,1));
+       hidP = logistic(bsxfun(@plus,2*model.W'*visP,model.hidB));
        hidPs =  1*(hidP >rand(sNum,hidNum));
        hidNs = hidPs;
-       for k=1:conf.gNum
+       for g=1:conf.gNum
            % down
-           visN  = logistic(2*hidNs*W' + repmat(visB,sNum,1));
+           visN  = logistic(bsxfun(@plus,model.W*hidNs,model.visB));
            visNs = 1*(visN>rand(sNum,visNum));
-%            if j==5 && k==1, save_images(visN,'',sNum,i,28,28); end
            % up
-           hidN  = logistic(visNs*W + repmat(hidB,sNum,1));
+           hidN  = logistic(bsxfun(@plus,2*model.W'*visNs,model.hidB));
            hidNs = 1*(hidN>rand(sNum,hidNum));
        end
        % Compute MSE for reconstruction
-       rdiff = (visP - visN);
-       mse = mse + sum(sum(rdiff.*rdiff))/(sNum*visNum);
+       err = err+ mse(visP,visN));
        % Update W,visB,hidB
-       diff = 2*(visP'*hidP - visNs'*hidN)/sNum;
-       DW  = lr*(diff - conf.params(4)*W) +  conf.params(3)*DW;
-       W   = W + DW;
-       DVB  = lr*sum(visP - visN,1)/sNum + conf.params(3)*DVB;
-       visB = visB + DVB;
-       DHB  = lr*sum(2*hidP - 2*hidN,1)/sNum + conf.params(3)*DHB;
-       hidB = hidB + DHB;
+       diff = 2*(visP*hidP' - visNs*hidN')/sNum;
+       DW   = lr*(diff - conf.params(4)*model.W) +  conf.params(3)*DW;
+       model.W    = model.W + DW;
+
+       DVB  = lr*sum(2*visP - 2*visN,1)/sNum + conf.params(3)*DVB;
+       model.visB = model.visB + DVB;
+
+       DHB  = lr*sum(hidP - hidN,1)/sNum + conf.params(3)*DHB;
+       model.hidB = model.hidB + DHB;
     end
-    %% 
-    if conf.plot_
-        mse_plot(i) = mse;
-        axis([0 (conf.eNum+1) 0 5]);
-        set(h,'YData',mse_plot);
-        drawnow;
+    % Visualization
+    if ~isempty(conf.vis_dir)        
+        save_images(visN,strcat(conf.vis_dir,'1layer_rec_'),sNum,e,conf.row,conf.col);
     end
-    
-    if mse > omse
-        inc_count = inc_count + 1
-    else
-        inc_count = 0;
-    end
-    if inc_count> MAX_INC, break; end;
-    fprintf('Epoch %d  : MSE = %f\n',i,mse);
-end
+     fprintf('Epoch %d  : Error  = %f\n',e,err);
 end

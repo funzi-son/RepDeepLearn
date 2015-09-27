@@ -1,0 +1,2 @@
+function odat = disgroup2softmax(idat,d_ranges)
+end

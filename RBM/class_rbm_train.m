@@ -1,9 +1,10 @@
-function [model,vld_acc,tst_acc] = class_rbm_train(conf)
+function [model,vld_acc,tst_acc] = class_rbm_train(conf,trn_dat,trn_lab,vld_dat,vld_lab)
 % Label-sparsity constrained RBM
 % Note: This one is new version, treating a data matrix as visNumxsNum
 % sontran2013
-trn_dat = get_data_from_file(conf.trn_dat_file);
-trn_lab = get_data_from_file(conf.trn_lab_file);
+
+if nargin<2, trn_dat = get_data_from_file(conf.trn_dat_file); end
+if nargin<3, trn_lab = get_data_from_file(conf.trn_lab_file); end
 
 
 if isfield(conf,'row_dat') && conf.row_dat % sample in row
@@ -18,8 +19,8 @@ else
 end
 
 if isfield(conf,'vld_dat_file') && ~isempty(conf.vld_dat_file)
-    vld_dat = get_data_from_file(conf.vld_dat_file);
-    vld_lab = get_data_from_file(conf.vld_lab_file);
+    if nargin<4, vld_dat = get_data_from_file(conf.vld_dat_file);end
+    if nargin<5, vld_lab = get_data_from_file(conf.vld_lab_file);end
     if isfield(conf,'row_dat') && conf.row_dat % sample in row
         vld_dat = vld_dat';                
     end
@@ -114,7 +115,7 @@ while running
         visP = trn_dat(:,iiii);
         labP = trn_lab(iiii) + 1;
         
-        sNum = size(visP,2);                
+        sNum = size(visP,2);
         hidP = logistic(model.W'*visP + model.U(labP,:)' + repmat(model.hidB,1,sNum));
 %         hidP = logistic(visP*model.W + repmat(model.hidB,sNum,1));
         hidPs = 1.0*(hidP>rand(size(hidP)));
@@ -179,7 +180,7 @@ while running
         model.labB = model.labB + labBD;
         
         %% Hidden Sparsity contrains
-        if conf.lambda >0 
+        if isfield(conf,'lambda') && conf.lambda >0 
             if strcmp(conf.sparsity,'EMIN')
                 expectation_min;
             end
@@ -268,7 +269,7 @@ if exist('model_best','var'), tst_acc = tst_best; end
 
 %% plotting
 if exist('res_e_plot','var')
-    
+e    
     fig1 = figure(1);
     set(fig1,'Position',[10,20,300,200]);
     plot([1:conf.eNum],res_e_plot);

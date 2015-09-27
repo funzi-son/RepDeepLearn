@@ -1,0 +1,3 @@
+function get_features_discrete_dat(model,trn_dat,vld_dat,tst_dat)
+
+end

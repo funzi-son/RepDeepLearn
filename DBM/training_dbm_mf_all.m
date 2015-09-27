@@ -1,30 +1,30 @@
-function [Ws visB hidBs] = training_dbm_mf_all(conf,Ws,visB,hidBs,trn_dat)
+function model = training_dbm_mf_all(model,trn_dat)
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 %     Training Deep Boltzmann Machine using mean-field posterior appox 
 %     and persistence CD
 %     sontran2013
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % 
 
-all_s = size(trn_dat,1);
-visNum = size(trn_dat,2);
-h1Num = size(Ws{1},2);
-h2Num = size(Ws{2},2);
-sNum = conf.sNum;
-M = conf.M;
+%% Load data
+if nargin<2
+    trn_dat = get_data_from_file(conf.trn_dat_file);
+end
+
+depth = size(model,2);
+SZ     = size(trn_dat,2);
+visNum = size(trn_dat,1);
+
+sNum   = conf.sNum;
+M      = conf.M;       
+
 % Initialize params
-DW1  = zeros(size(Ws{1}));
-DW2  = zeros(size(Ws{2}));
-DVB  = zeros(size(visB));
-DHB1 = zeros(size(hidBs{1}));
-DHB2 = zeros(size(hidBs{2}));
+DW    =  cell(depth,1);
+DVB   =  zeros(visNum,1);
+DHB1  =  cell(depth,1);
 
-%% test
-% Ws{1}  = 0.1*randn(size(Ws{1}));
-% Ws{2}  = 0.1*randn(size(Ws{2}));
-% visB   = 0.1*randn(size(visB));
-% hidBs{1} = 0.1*randn(size(hidBs{1}));
-% hidBs{2} = 0.1*randn(size(hidBs{2}));
-%% end test
+for i=1:depth
+end
 
 % Initialize fantasy particle
 v_f  = round(rand(M,visNum));

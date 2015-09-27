@@ -5,8 +5,13 @@ function cost = llh(outputs,labels)
        fprintf(strcat(mfilename,': Error! Label does not match!!!'));
        cost = NaN;
    end
+   %size(outputs)
+   %size(labels)
+   %outputs(labels)
+   %pause;
    inx = labels + [0:sNum-1]*lNum;
-   cost = mean(log(outputs(labels)+0.0000000001));
+  
+   cost = mean(log(outputs(inx)+0.0000000001));
 
    if isinf(cost) || isnan(cost)
        fpritnf('Error!! Cost is NaN or Inf!!\n');

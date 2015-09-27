@@ -42,10 +42,9 @@ DW = zeros(size(model.W));
 DB = zeros(size(model.labB));
 
 
-STOP = 0;
-e=0;
+running = 1; e=0; vld_best=0;
 lr = conf.params(1);
-while ~STOP
+while running
     e = e+1;
     inx = randperm(SZ);
     trn_acc = 0;
@@ -88,9 +87,48 @@ while ~STOP
     
     % Print out
     fprintf('[Epoch %d] Cost=%.5f|trn_acc=%.5f|vld_acc=%.5f|tst_acc=%.5f\n',e,cost_vl/conf.bNum,trn_acc,vld_acc,tst_acc);
-    
+
+
+    % learning rate decay 
+        if isfield(conf,'E_STOP_LR_REDUCE')
+        if vld_acc<=vld_best
+            acc_drop_count = acc_drop_count + 1;
+            % If accuracy reduces for a number of time, then turn back to the
+            % best model and reduce the learning rate
+            if acc_drop_count > conf.E_STOP_LR_REDUCE
+                fprintf('Learning rate reduced!\n');
+                acc_drop_count = 0;
+                es_count = es_count + 1; %number of reduce learning rate
+                lr = lr/conf.LR_CHANGE_FACTOR;
+                model = model_best;
+            end
+        else
+            es_count = 0;
+            acc_drop_count = 0;
+            vld_best = vld_acc;
+            tst_best = tst_acc;
+            model_best = model;
+        end
+    end
+    % Early stopping
+    if isfield(conf,'E_STOP') 
+        if isfield(conf,'desire_acc') && vld_acc >= conf.desire_acc, running=0;end
+        
+ 
+        if es_count > conf.E_STOP, running=0; end
+    end
+
+    % Check stop
+    if e>=conf.eNum, running=0; end
 end
+
+if exist('model_best','var'), model = model_best; end
+if exist('vld_best','var'), vld_acc = vld_best; end
+if exist('model_best','var'), tst_acc = tst_best; end
+
 end
+
+
 function probs = get_probs(X,model)
     I = bsxfun(@plus,model.W'*X,model.labB);
     I = exp(bsxfun(@minus,I,max(I)));% exponents of normalized input
